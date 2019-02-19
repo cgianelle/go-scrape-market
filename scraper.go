@@ -21,65 +21,36 @@ func printTable(table []IndexSummary) {
 	}
 }
 
-func processCell(token *html.Tokenizer) string {
-	foundTD := false
+func processCell(token *html.Tokenizer, startTag string) (string, error) {
+	foundStart := false
 	var text string
 	for {
 		tt := token.Next()
 		switch {
 		case tt == html.ErrorToken:
-			return ""
+			return "", token.Err()
 		case tt == html.StartTagToken:
 			t := token.Token()
-			if t.Data == "td" {
+			if t.Data == startTag {
 				// fmt.Println("Start Of Cell")
-				foundTD = true
+				foundStart = true
 			}
 		case tt == html.TextToken:
-			if foundTD {
+			if foundStart {
 				text = string(token.Text())
-				foundTD = false
+				foundStart = false
 			}
 		case tt == html.EndTagToken:
 			t := token.Token()
 			if t.Data == "td" {
 				// fmt.Println("End Of Cell")
-				return text
+				return text, nil
 			}
 		}
 	}
 }
 
-func processIndexLinkedCell(token *html.Tokenizer) string {
-	foundA := false
-	var text string
-	for {
-		tt := token.Next()
-		switch {
-		case tt == html.ErrorToken:
-			return ""
-		case tt == html.StartTagToken:
-			t := token.Token()
-			if t.Data == "a" {
-				// fmt.Println("Start Of Cell")
-				foundA = true
-			}
-		case tt == html.TextToken:
-			if foundA {
-				text = string(token.Text())
-				foundA = false
-			}
-		case tt == html.EndTagToken:
-			t := token.Token()
-			if t.Data == "td" {
-				// fmt.Println("End Of Cell")
-				return text
-			}
-		}
-	}
-}
-
-func processIndexRows(token *html.Tokenizer) []IndexSummary {
+func processIndexRows(token *html.Tokenizer) ([]IndexSummary, error) {
 	var indexes []IndexSummary
 	// processes row between the <TR> and the </TR> tags
 	// format:
@@ -94,16 +65,16 @@ func processIndexRows(token *html.Tokenizer) []IndexSummary {
 		tt := token.Next()
 		switch {
 		case tt == html.ErrorToken:
-			return nil
+			return nil, token.Err()
 		case tt == html.StartTagToken:
 			t := token.Token()
 			// fmt.Println(t.Data)
 			if t.Data == "tr" {
 				var index IndexSummary
-				index.IndexName = processIndexLinkedCell(token)
-				index.LastValue = processCell(token)
-				index.Change = processCell(token)
-				index.PercentChange = processCell(token)
+				index.IndexName, _ = processCell(token, "a")
+				index.LastValue, _ = processCell(token, "td")
+				index.Change, _ = processCell(token, "td")
+				index.PercentChange, _ = processCell(token, "td")
 				indexes = append(indexes, index)
 			}
 		case tt == html.EndTagToken:
@@ -111,7 +82,7 @@ func processIndexRows(token *html.Tokenizer) []IndexSummary {
 			// fmt.Println(t.Data)
 			if t.Data == "tbody" {
 				// fmt.Println("End Of table")
-				return indexes
+				return indexes, nil
 			}
 		}
 	}
@@ -132,7 +103,7 @@ func parseMarketSummaryIndexesTable(token *html.Tokenizer) []IndexSummary {
 			fmt.Print(t.Data)
 			fmt.Print(" ")
 			if t.Data == "tbody" {
-				table = processIndexRows(token)
+				table, _ = processIndexRows(token)
 			}
 		case tt == html.EndTagToken:
 			t := token.Token()
