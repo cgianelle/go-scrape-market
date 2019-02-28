@@ -1,10 +1,10 @@
-FROM golang as builder
+FROM arm32v7/golang as builder
 WORKDIR /go/src/go-scape-market
 COPY scraper.go .
 RUN go get golang.org/x/net/html && \ 
     CGO_ENABLED=0 GOOS=linux go install go-scape-market
 
-FROM alpine:latest
+FROM arm32v7/ubuntu:18.04
 LABEL maintainer="cgianelle@gmail.com"
 LABEL version="0.0.1"
 RUN apk --no-cache add ca-certificates
