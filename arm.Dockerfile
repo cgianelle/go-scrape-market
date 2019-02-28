@@ -4,7 +4,7 @@ COPY scraper.go .
 RUN go get golang.org/x/net/html && \ 
     CGO_ENABLED=0 GOOS=linux go install go-scape-market
 
-FROM arm32v7/ubuntu:18.04
+FROM arm32v6/alpine
 LABEL maintainer="cgianelle@gmail.com"
 LABEL version="0.0.1"
 RUN apk --no-cache add ca-certificates
