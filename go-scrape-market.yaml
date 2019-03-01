@@ -1,0 +1,17 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: go-scrape-market
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: go-scrape-market
+            image: cgianelle1976/go-scrape-market:arm32-0.0.2
+            command:
+              - go-scrape-market
+          restartPolicy: OnFailure
