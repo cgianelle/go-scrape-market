@@ -52,3 +52,48 @@ func TestParseGoodMarketWatch(t *testing.T) {
 		}
 	}
 }
+
+func TestParseNoTableHTML(t *testing.T) {
+	reader, error := openHTML("notable.html")
+	if error != nil {
+		t.Error(error)
+	} else {
+		_, msError := findMarketSummaryIndexesTable(reader)
+		if msError == nil {
+			t.Error("Expected this to fail due to html missing tables")
+		}
+		if msError != nil && msError.Error() != "EOF" {
+			t.Errorf("Expected this to fail because of EOF, but got %v", msError.Error())
+		}
+	}
+}
+
+func TestParseMissingMarketSummaryTable(t *testing.T) {
+	reader, error := openHTML("marketwatch.1.html")
+	if error != nil {
+		t.Error(error)
+	} else {
+		_, msError := findMarketSummaryIndexesTable(reader)
+		if msError == nil {
+			t.Error("Expected this to fail due to html missing table body")
+		}
+		if msError != nil && msError.Error() != "EOF" {
+			t.Errorf("Expected this to fail because of EOF, but got %v", msError.Error())
+		}
+	}
+}
+
+func TestParseMissingTableBody(t *testing.T) {
+	reader, error := openHTML("marketwatch.2.html")
+	if error != nil {
+		t.Error(error)
+	} else {
+		_, msError := findMarketSummaryIndexesTable(reader)
+		if msError == nil {
+			t.Error("Expected this to fail due to html missing tables")
+		}
+		if msError != nil && msError.Error() != "MarketSummaryMissingTableBody" {
+			t.Errorf("Expected this to fail because of MarketSummaryMissingTableBody, but got %v", msError.Error())
+		}
+	}
+}

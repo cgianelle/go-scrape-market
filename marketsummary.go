@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -87,13 +88,18 @@ func parseMarketSummaryIndexesTable(token *html.Tokenizer) ([]IndexSummary, erro
 
 		switch {
 		case tt == html.ErrorToken:
-			// End of the document, we're done
-			fmt.Println("Error or End of Document")
+			fmt.Println("parseMarketSummaryIndexesTable")
 			return nil, token.Err()
 		case tt == html.StartTagToken:
 			t := token.Token()
 			if t.Data == "tbody" {
 				return processIndexRows(token)
+			}
+		case tt == html.EndTagToken:
+			t := token.Token()
+			if t.Data == "table" {
+				//--If we hit the end of the table before the body return
+				return nil, errors.New("MarketSummaryMissingTableBody")
 			}
 		}
 	}
@@ -115,7 +121,6 @@ func findMarketSummaryIndexesTable(body io.ReadCloser) ([]IndexSummary, error) {
 			if isAnchor {
 				for _, a := range t.Attr {
 					if a.Key == "id" && a.Val == "marketsummaryindexes" {
-						fmt.Println("Found id:", a.Val)
 						return parseMarketSummaryIndexesTable(z)
 					}
 				}
