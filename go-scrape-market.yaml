@@ -12,4 +12,11 @@ spec:
           containers:
           - name: go-scrape-market
             image: cgianelle1976/go-scrape-market:arm32-0.0.1
+            volumeMounts:
+              - name:  foo
+                mountPath:  "/etc/foo"
           restartPolicy: OnFailure
+          volumes:
+          - name:  foo
+            secret:
+              secretName: my-super-secret-secret
